@@ -1,0 +1,18 @@
+{
+    "I [Hz]": 88.55956132098645,
+    "P": 0.018798828125,
+    "autoupdate interval [s]": 10.0,
+    "input": "in1",
+    "integrator": 3.9998779296875,
+    "max voltage [V]": 1.0,
+    "min voltage [V]": -1.0,
+    "output": "out1",
+    "relock interval [s]": 0.5,
+    "relock setting": "centre",
+    "relock voltage [V]": 0.0,
+    "scope duration [s]": 0.268435456,
+    "setpoint [V]": 0.0,
+    "sweep frequency [Hz]": 49.942173063755035,
+    "sweep max [V]": 1.0,
+    "sweep min [V]": -1.0
+}
