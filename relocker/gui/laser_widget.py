@@ -95,6 +95,7 @@ class laser(QWidget):
         self.pid_button.clicked.connect(self.manual_set_pid_state)
         self.sweep_button.clicked.connect(self.set_sweep_state)
         self.update_graph_button.clicked.connect(self.get_scope_trace)
+        self.dump_trace_button.clicked.connect(self.dump_trace)
         self.offset_line.sigPositionChangeFinished.connect(self.update_offset_point_from_graph)
         self.offset_box.returnPressed.connect(self.update_offset_point_from_box)
         self.autoupdate_button.clicked.connect(self.set_autoupdate)
@@ -137,9 +138,14 @@ class laser(QWidget):
         layout = QtWidgets.QVBoxLayout()
         self.time_label = QtWidgets.QLabel("")
         self.update_graph_button = QtWidgets.QPushButton("update")
-        self.save_trace_on_update_button = QtWidgets.QPushButton("save trace on update")
+        self.dump_trace_button = QtWidgets.QPushButton("dump trace")
+        self.save_trace_on_update_button = QtWidgets.QPushButton("dump trace on update")
         self.save_trace_on_update_button.setCheckable(True)
         
+        dump_layout = QHBoxLayout()
+        dump_layout.addWidget(self.dump_trace_button)
+        dump_layout.addWidget(self.save_trace_on_update_button)
+
         self.scope_plot = pg.plot(labels={'left': ('input','V'), 'bottom': ('output','V')})
         self.scope_plot.setBackground(None)
         self.scope_plot.getAxis('left').setTextPen('k')
@@ -171,7 +177,7 @@ class laser(QWidget):
         layout.addWidget(self.time_label)
         layout.addWidget(self.scope_plot)
         layout.addWidget(self.update_graph_button)
-        layout.addWidget(self.save_trace_on_update_button)
+        layout.addLayout(dump_layout)
         layout.addLayout(offset_layout)
         self.layout.addLayout(layout)
         
@@ -452,6 +458,14 @@ class laser(QWidget):
         duration = 0.1
         self.rp.queue_scope_trace(self.settings['output'],self.settings['input'],duration)
 
+    def dump_trace(self):
+        dump = [self.times,self.asg_trace,self.input_trace,self.settings]
+        now = datetime.now() # current date and time
+        filename = r'.\trace dumps\{}\general dumps\{}.pickle'.format(self.name,now.strftime("%Y.%m.%d.%H.%M.%S.%f"))
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+        with open(filename, 'wb') as file:
+            pickle.dump(dump,file)
+
     def update_scope_trace(self,times,datas,duration):
         self.scope_plot.clear()
         self.times = times
@@ -461,12 +475,7 @@ class laser(QWidget):
         self.scope_plot.addItem(self.offset_line)
         self.scope_plot.addItem(self.last_lock_line)
         if self.save_trace_on_update_button.isChecked():
-                dump = [self.times,self.asg_trace,self.input_trace,self.settings]
-                now = datetime.now() # current date and time
-                filename = r'.\trace dumps\{}\update dumps\{}.pickle'.format(self.name,now.strftime("%Y.%m.%d.%H.%M.%S.%f"))
-                os.makedirs(os.path.dirname(filename), exist_ok=True)
-                with open(filename, 'wb') as file:
-                    pickle.dump(dump,file)
+                self.dump_trace()
         self.check_if_locked()
         if self.pid_enabled and self.autorelock and (not self.is_locked) and (not self.is_relocking):
             self.relock()
